@@ -16,8 +16,9 @@
 
         {% if elections %}
         <div class="table-card">
-            <table class="data-table" id="elections-table">
-                <thead>
+            <div class="table-responsive">
+                <table class="data-table" id="elections-table">
+                    <thead>
                     <tr>
                         <th>Election</th>
                         <th>Status</th>
@@ -65,7 +66,8 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+                </table>
+            </div>
         </div>
         {% else %}
         <div class="empty-state">

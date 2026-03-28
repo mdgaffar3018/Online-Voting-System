@@ -395,18 +395,27 @@ a:hover { color: var(--accent-violet); }
 .footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding: 24px; text-align: center; }
 .footer-content p { color: var(--text-muted); font-size: 13px; }
 
-/* RESPONSIVE */
-@media (max-width: 900px) { .results-content { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
+/* RESPONSIVE ENHANCEMENTS */
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 900px) { 
+    .results-content { grid-template-columns: 1fr; } 
+}
+@media (max-width: 768px) { 
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    .flash-container { right: 16px; left: 16px; max-width: calc(100% - 32px); }
+}
 @media (max-width: 640px) {
     .elections-grid, .candidates-grid, .admin-stats { grid-template-columns: 1fr; }
     .profile-header { flex-direction: column; text-align: center; }
     .auth-card { padding: 28px 20px; }
+    .dashboard-card, .admin-card, .table-card, .form-card { padding: 20px 16px; }
     .otp-digit { width: 44px; height: 54px; font-size: 20px; }
+    .data-table th, .data-table td { padding: 12px 14px; font-size: 13px; }
 }
 
 /* SCROLLBAR */
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.35); }
