@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Vote Confirmed!{% endblock %}
+
+{% block content %}
+<section class="success-section">
+    <div class="container">
+        <div class="success-card" id="success-card">
+            <div class="success-animation">
+                <div class="checkmark-circle">
+                    <svg class="checkmark-svg" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle-bg" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <div class="confetti-container" id="confetti-container"></div>
+            </div>
+            
+            <h1 class="success-title">Vote Cast Successfully!</h1>
+            <p class="success-desc">
+                Your vote for <strong>"{{ election.title }}"</strong> has been recorded securely. 
+                Thank you for participating in democracy!
+            </p>
+            
+            <div class="success-actions">
+                <a href="{{ url_for('results', election_id=election.id) }}" class="btn btn-primary btn-lg">
+                    📊 View Live Results
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-lg">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Confetti animation
+    document.addEventListener('DOMContentLoaded', () => {
+        createConfetti();
+    });
+    
+    function createConfetti() {
+        const container = document.getElementById('confetti-container');
+        const colors = ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899'];
+        
+        for (let i = 0; i < 60; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti-piece';
+            confetti.style.setProperty('--x', (Math.random() - 0.5) * 400 + 'px');
+            confetti.style.setProperty('--y', -(Math.random() * 300 + 100) + 'px');
+            confetti.style.setProperty('--r', Math.random() * 720 - 360 + 'deg');
+            confetti.style.setProperty('--delay', Math.random() * 0.5 + 's');
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            container.appendChild(confetti);
+        }
+    }
+</script>
+{% endblock %}

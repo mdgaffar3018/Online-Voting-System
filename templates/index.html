@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
+    <div class="hero-content">
+        <div class="hero-badge">🔒 Secure & Transparent</div>
+        <h1 class="hero-title">
+            Your Voice,<br>
+            <span class="gradient-text">Your Vote.</span>
+        </h1>
+        <p class="hero-subtitle">
+            A trusted platform for secure, transparent, and tamper-proof online elections. 
+            One person, one vote — verified and protected.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg" id="hero-register-btn">
+                Get Started
+                <span class="btn-arrow">→</span>
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg" id="hero-login-btn">
+                Login
+            </a>
+        </div>
+        
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-icon">🛡️</span>
+                <div>
+                    <span class="stat-number">256-bit</span>
+                    <span class="stat-label">Encryption</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">✅</span>
+                <div>
+                    <span class="stat-number">OTP</span>
+                    <span class="stat-label">Verified</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">📊</span>
+                <div>
+                    <span class="stat-number">Live</span>
+                    <span class="stat-label">Results</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Why <span class="gradient-text">VoteSecure</span>?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Secure Authentication</h3>
+                <p>Multi-layer security with password hashing, OTP verification, and session management.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">☝️</div>
+                <h3>One Person, One Vote</h3>
+                <p>Database-level constraints prevent duplicate voting, ensuring fair elections.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Live Results</h3>
+                <p>Watch results update in real-time with beautiful animated charts and dashboards.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>Admin Controls</h3>
+                <p>Full election management — create, modify, and monitor elections with ease.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📧</div>
+                <h3>Email Verification</h3>
+                <p>OTP-based email verification ensures only real users can participate.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Responsive Design</h3>
+                <p>Vote from any device — desktop, tablet, or mobile. Seamless experience everywhere.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

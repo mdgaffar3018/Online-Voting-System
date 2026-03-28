@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ current_user.name[0] }}
+                </div>
+                <div class="profile-info">
+                    <h1>{{ current_user.name }}</h1>
+                    <p class="profile-email">{{ current_user.email }}</p>
+                    <div class="profile-badges">
+                        {% if current_user.is_verified %}
+                            <span class="badge badge-success">✅ Verified</span>
+                        {% endif %}
+                        {% if current_user.is_admin %}
+                            <span class="badge badge-admin">👑 Admin</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-stats-row">
+                <div class="profile-stat">
+                    <span class="stat-num">{{ user_votes|length }}</span>
+                    <span class="stat-lbl">Votes Cast</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-num">{{ current_user.created_at.strftime('%b %Y') }}</span>
+                    <span class="stat-lbl">Member Since</span>
+                </div>
+            </div>
+        </div>
+
+        {% if user_votes %}
+        <div class="voting-history">
+            <h2 class="section-heading">Voting History</h2>
+            <div class="history-grid">
+                {% for v in user_votes %}
+                <div class="history-card">
+                    <div class="history-icon">🗳️</div>
+                    <div class="history-details">
+                        <h4>{{ v.election.title }}</h4>
+                        <p>Voted for: <strong>{{ v.candidate.name }}</strong></p>
+                        <span class="history-date">{{ v.voted_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    <a href="{{ url_for('results', election_id=v.election_id) }}" class="btn btn-ghost btn-sm">View Results</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h2>No Votes Yet</h2>
+            <p>You haven't voted in any elections yet.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Browse Elections</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

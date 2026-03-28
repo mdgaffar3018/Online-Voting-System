@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Edit{% else %}Create{% endif %} Election{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <a href="{{ url_for('admin_elections') }}" class="back-link">← Back to Elections</a>
+            <h1 class="page-title">
+                {% if editing %}
+                    Edit <span class="gradient-text">{{ election.title }}</span>
+                {% else %}
+                    Create <span class="gradient-text">New Election</span>
+                {% endif %}
+            </h1>
+        </div>
+
+        <div class="form-card">
+            <form method="POST" action="{% if editing %}{{ url_for('edit_election', election_id=election.id) }}{% else %}{{ url_for('create_election') }}{% endif %}" class="admin-form" id="election-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-group">
+                    <label for="title">Election Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g. Student Council President 2026" 
+                           value="{{ election.title if editing else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" placeholder="Describe what this election is about...">{{ election.description if editing else '' }}</textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_time">Start Date & Time</label>
+                        <input type="datetime-local" id="start_time" name="start_time" 
+                               value="{{ election.start_time.strftime('%Y-%m-%dT%H:%M') if editing else '' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_time">End Date & Time</label>
+                        <input type="datetime-local" id="end_time" name="end_time" 
+                               value="{{ election.end_time.strftime('%Y-%m-%dT%H:%M') if editing else '' }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" id="save-election-btn">
+                        {% if editing %}💾 Save Changes{% else %}🗳️ Create Election{% endif %}
+                    </button>
+                    <a href="{{ url_for('admin_elections') }}" class="btn btn-outline btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

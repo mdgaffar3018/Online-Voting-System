@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VoteSecure — A trusted, transparent, and secure online voting platform.">
+    <title>{% block title %}VoteSecure{% endblock %} | Secure Online Voting</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">
+                <span class="logo-icon">🗳️</span>
+                <span class="logo-text">Vote<span class="logo-accent">Secure</span></span>
+            </a>
+            
+            <div class="nav-actions">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle Theme">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            
+            <ul class="nav-menu" id="nav-menu">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a></li>
+                    {% if current_user.is_admin %}
+                        <li><a href="{{ url_for('admin_panel') }}" class="nav-link nav-admin">Admin Panel</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="nav-link nav-logout">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-link btn-nav-register">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-msg flash-{{ category }}" role="alert">
+                        <span class="flash-icon">
+                            {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                        </span>
+                        <span>{{ message }}</span>
+                        <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 VoteSecure. Built with transparency and security in mind.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

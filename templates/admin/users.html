@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <a href="{{ url_for('admin_panel') }}" class="back-link">← Back to Admin Panel</a>
+                <h1 class="page-title">Manage <span class="gradient-text">Users</span></h1>
+                <p class="page-subtitle">{{ users|length }} registered users</p>
+            </div>
+        </div>
+
+        {% if users %}
+        <div class="table-card">
+            <table class="data-table" id="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="table-user">
+                                <span class="table-avatar">{{ user.name[0] }}</span>
+                                <div>
+                                    <div class="table-title">{{ user.name }}</div>
+                                    <div class="table-sub">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if user.is_verified %}
+                                <span class="status-pill status-active">Verified</span>
+                            {% else %}
+                                <span class="status-pill status-inactive">Unverified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="status-pill status-admin">👑 Admin</span>
+                            {% else %}
+                                <span class="status-pill status-voter">Voter</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="table-sub">{{ user.created_at.strftime('%b %d, %Y') }}</span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                {% if user.id != current_user.id %}
+                                    <form method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-ghost btn-xs" title="Toggle Admin">
+                                            {% if user.is_admin %}👤 Revoke Admin{% else %}👑 Make Admin{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Delete this user? This cannot be undone.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-ghost btn-xs btn-danger-ghost">🗑️ Delete</button>
+                                    </form>
+                                {% else %}
+                                    <span class="table-sub">You</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h2>No Users</h2>
+            <p>No users have registered yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

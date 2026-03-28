@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Verify Email{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card otp-card">
+            <div class="auth-header">
+                <div class="auth-icon otp-icon">📧</div>
+                <h1>Verify Your Email</h1>
+                <p>We sent a 6-digit OTP code to <strong>{{ email }}</strong></p>
+                <p class="otp-hint">Check your terminal/console for the OTP code</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('verify_otp') }}" class="auth-form otp-form" id="otp-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="otp-inputs" id="otp-inputs">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="0" autocomplete="off" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="1" autocomplete="off" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="2" autocomplete="off" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="3" autocomplete="off" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="4" autocomplete="off" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="5" autocomplete="off" inputmode="numeric">
+                </div>
+                <input type="hidden" name="otp" id="otp-hidden">
+                
+                <button type="submit" class="btn btn-primary btn-block" id="verify-otp-btn">
+                    Verify Email
+                    <span class="btn-arrow">→</span>
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Didn't receive the code?</p>
+                <form method="POST" action="{{ url_for('resend_otp') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-link" id="resend-otp-btn">Resend OTP</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

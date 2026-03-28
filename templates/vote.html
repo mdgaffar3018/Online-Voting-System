@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Vote — {{ election.title }}{% endblock %}
+
+{% block content %}
+<section class="vote-section">
+    <div class="container">
+        <div class="vote-header">
+            <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+            <h1 class="page-title">{{ election.title }}</h1>
+            <p class="page-subtitle">{{ election.description or '' }}</p>
+            <div class="vote-info">
+                <span class="info-badge">🕐 Ends: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                <span class="info-badge">🗳️ {{ election.total_votes }} votes cast</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('vote', election_id=election.id) }}" class="vote-form" id="vote-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <h2 class="section-heading">Select Your Candidate</h2>
+            
+            <div class="candidates-grid">
+                {% for candidate in candidates %}
+                <label class="candidate-card" for="candidate-{{ candidate.id }}" id="candidate-card-{{ candidate.id }}">
+                    <input type="radio" name="candidate_id" value="{{ candidate.id }}" id="candidate-{{ candidate.id }}" required>
+                    <div class="candidate-content">
+                        <div class="candidate-avatar">
+                            {{ candidate.name[0] }}
+                        </div>
+                        <h3 class="candidate-name">{{ candidate.name }}</h3>
+                        {% if candidate.party %}
+                            <span class="candidate-party">{{ candidate.party }}</span>
+                        {% endif %}
+                        {% if candidate.bio %}
+                            <p class="candidate-bio">{{ candidate.bio }}</p>
+                        {% endif %}
+                        <div class="candidate-check">
+                            <span class="check-icon">✓</span>
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <div class="vote-submit">
+                <button type="submit" class="btn btn-primary btn-lg" id="submit-vote-btn" onclick="return confirm('Are you sure? This action cannot be undone.')">
+                    🗳️ Cast My Vote
+                </button>
+                <p class="vote-disclaimer">⚠️ Your vote is final and cannot be changed after submission.</p>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

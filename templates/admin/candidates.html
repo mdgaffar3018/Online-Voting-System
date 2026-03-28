@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Manage Candidates — {{ election.title }}{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <a href="{{ url_for('admin_elections') }}" class="back-link">← Back to Elections</a>
+                <h1 class="page-title">{{ election.title }}</h1>
+                <p class="page-subtitle">Manage candidates for this election</p>
+            </div>
+        </div>
+
+        <!-- Add Candidate Form -->
+        <div class="form-card">
+            <h3>➕ Add New Candidate</h3>
+            <form method="POST" action="{{ url_for('admin_candidates', election_id=election.id) }}" class="admin-form inline-form" id="add-candidate-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-row form-row-3">
+                    <div class="form-group">
+                        <label for="name">Candidate Name</label>
+                        <input type="text" id="name" name="name" placeholder="Full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="party">Party / Group</label>
+                        <input type="text" id="party" name="party" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">Short Bio</label>
+                        <input type="text" id="bio" name="bio" placeholder="One-line description">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="add-candidate-btn">Add Candidate</button>
+            </form>
+        </div>
+
+        <!-- Existing Candidates -->
+        {% if candidates %}
+        <div class="candidates-list">
+            <h3 class="section-heading">Current Candidates ({{ candidates|length }})</h3>
+            <div class="admin-candidates-grid">
+                {% for candidate in candidates %}
+                <div class="admin-candidate-card" id="admin-candidate-{{ candidate.id }}">
+                    <div class="admin-candidate-avatar">{{ candidate.name[0] }}</div>
+                    <div class="admin-candidate-info">
+                        <h4>{{ candidate.name }}</h4>
+                        {% if candidate.party %}
+                            <span class="admin-candidate-party">{{ candidate.party }}</span>
+                        {% endif %}
+                        {% if candidate.bio %}
+                            <p class="admin-candidate-bio">{{ candidate.bio }}</p>
+                        {% endif %}
+                        <span class="admin-candidate-votes">🗳️ {{ candidate.vote_count }} votes</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_candidate', candidate_id=candidate.id) }}" onsubmit="return confirm('Remove this candidate?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-xs btn-danger-ghost" title="Remove">🗑️ Remove</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h2>No Candidates</h2>
+            <p>Add candidates using the form above.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

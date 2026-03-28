@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="page-title">
+                    Welcome, <span class="gradient-text">{{ current_user.name }}</span>
+                </h1>
+                <p class="page-subtitle">Browse active elections and cast your vote</p>
+            </div>
+        </div>
+
+        <!-- Active Elections -->
+        {% if active_elections %}
+        <div class="elections-section">
+            <h2 class="section-heading">
+                <span class="heading-dot active-dot"></span>
+                Active Elections
+            </h2>
+            <div class="elections-grid">
+                {% for election in active_elections %}
+                <div class="election-card" id="election-{{ election.id }}">
+                    <div class="election-badge active-badge">🟢 Active</div>
+                    <h3 class="election-title">{{ election.title }}</h3>
+                    <p class="election-desc">{{ election.description or 'No description provided.' }}</p>
+                    <div class="election-meta">
+                        <span>📅 Ends: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                        <span>🗳️ {{ election.total_votes }} votes</span>
+                    </div>
+                    <div class="election-actions">
+                        {% if election.id in voted_election_ids %}
+                            <a href="{{ url_for('results', election_id=election.id) }}" class="btn btn-outline btn-sm">
+                                📊 View Results
+                            </a>
+                            <span class="voted-badge">✅ Voted</span>
+                        {% else %}
+                            <a href="{{ url_for('vote', election_id=election.id) }}" class="btn btn-primary btn-sm" id="vote-btn-{{ election.id }}">
+                                🗳️ Cast Vote
+                            </a>
+                            <a href="{{ url_for('results', election_id=election.id) }}" class="btn btn-ghost btn-sm">
+                                📊 Results
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Elections -->
+        {% if upcoming_elections %}
+        <div class="elections-section">
+            <h2 class="section-heading">
+                <span class="heading-dot upcoming-dot"></span>
+                Upcoming Elections
+            </h2>
+            <div class="elections-grid">
+                {% for election in upcoming_elections %}
+                <div class="election-card upcoming-card" id="election-{{ election.id }}">
+                    <div class="election-badge upcoming-badge">🔵 Upcoming</div>
+                    <h3 class="election-title">{{ election.title }}</h3>
+                    <p class="election-desc">{{ election.description or 'No description provided.' }}</p>
+                    <div class="election-meta">
+                        <span>📅 Starts: {{ election.start_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                    </div>
+                    <div class="election-actions">
+                        <span class="btn btn-disabled btn-sm">⏳ Not Started Yet</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ended Elections -->
+        {% if ended_elections %}
+        <div class="elections-section">
+            <h2 class="section-heading">
+                <span class="heading-dot ended-dot"></span>
+                Ended Elections
+            </h2>
+            <div class="elections-grid">
+                {% for election in ended_elections %}
+                <div class="election-card ended-card" id="election-{{ election.id }}">
+                    <div class="election-badge ended-badge">🔴 Ended</div>
+                    <h3 class="election-title">{{ election.title }}</h3>
+                    <p class="election-desc">{{ election.description or 'No description provided.' }}</p>
+                    <div class="election-meta">
+                        <span>📅 Ended: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                        <span>🗳️ {{ election.total_votes }} votes</span>
+                    </div>
+                    <div class="election-actions">
+                        <a href="{{ url_for('results', election_id=election.id) }}" class="btn btn-outline btn-sm">
+                            📊 Final Results
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not active_elections and not upcoming_elections and not ended_elections %}
+        <div class="empty-state">
+            <div class="empty-icon">🗳️</div>
+            <h2>No Elections Available</h2>
+            <p>There are currently no elections. Check back later!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

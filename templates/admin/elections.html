@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Manage Elections{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <a href="{{ url_for('admin_panel') }}" class="back-link">← Back to Admin Panel</a>
+                <h1 class="page-title">Manage <span class="gradient-text">Elections</span></h1>
+            </div>
+            <a href="{{ url_for('create_election') }}" class="btn btn-primary" id="new-election-btn">
+                ➕ New Election
+            </a>
+        </div>
+
+        {% if elections %}
+        <div class="table-card">
+            <table class="data-table" id="elections-table">
+                <thead>
+                    <tr>
+                        <th>Election</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Votes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for election in elections %}
+                    <tr>
+                        <td>
+                            <div class="table-title">{{ election.title }}</div>
+                            <div class="table-sub">{{ election.candidates|length }} candidates</div>
+                        </td>
+                        <td>
+                            <span class="status-pill status-{{ election.status }}">
+                                {{ election.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-sub">{{ election.start_time.strftime('%b %d, %Y') }}</div>
+                            <div class="table-sub">→ {{ election.end_time.strftime('%b %d, %Y') }}</div>
+                        </td>
+                        <td>
+                            <span class="table-count">{{ election.total_votes }}</span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('admin_candidates', election_id=election.id) }}" class="btn btn-ghost btn-xs" title="Manage Candidates">👥</a>
+                                <a href="{{ url_for('results', election_id=election.id) }}" class="btn btn-ghost btn-xs" title="View Results">📊</a>
+                                <a href="{{ url_for('edit_election', election_id=election.id) }}" class="btn btn-ghost btn-xs" title="Edit">✏️</a>
+                                <form method="POST" action="{{ url_for('toggle_election', election_id=election.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-ghost btn-xs" title="Toggle Active">
+                                        {% if election.is_active %}⏸️{% else %}▶️{% endif %}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('delete_election', election_id=election.id) }}" style="display:inline;" onsubmit="return confirm('Delete this election? This cannot be undone.')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-danger-ghost" title="Delete">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h2>No Elections</h2>
+            <p>Create your first election to get started.</p>
+            <a href="{{ url_for('create_election') }}" class="btn btn-primary">➕ Create Election</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

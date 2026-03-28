@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Results — {{ election.title }}{% endblock %}
+
+{% block content %}
+<section class="results-section">
+    <div class="container">
+        <div class="results-header">
+            <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+            <h1 class="page-title">{{ election.title }}</h1>
+            <p class="page-subtitle">Live Election Results</p>
+            <div class="results-meta">
+                <span class="info-badge status-badge-{{ election.status }}">
+                    {% if election.status == 'active' %}🟢 Live{% elif election.status == 'ended' %}🔴 Ended{% else %}🔵 {{ election.status|title }}{% endif %}
+                </span>
+                <span class="info-badge" id="total-votes-badge">🗳️ {{ total_votes }} total votes</span>
+                {% if election.status == 'active' %}
+                    <span class="info-badge live-indicator">
+                        <span class="live-dot"></span> Auto-refreshing
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="results-content">
+            <!-- Chart Area -->
+            <div class="chart-section">
+                <div class="chart-card">
+                    <h3>Vote Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="donut-chart" width="300" height="300"></canvas>
+                    </div>
+                    <div class="chart-legend" id="chart-legend"></div>
+                </div>
+            </div>
+
+            <!-- Results Bars -->
+            <div class="bars-section">
+                <div class="bars-card">
+                    <h3>Candidate Results</h3>
+                    <div class="results-bars" id="results-bars">
+                        {% for candidate in candidates %}
+                        <div class="result-bar-item" id="result-bar-{{ candidate.id }}">
+                            <div class="bar-header">
+                                <div class="bar-candidate">
+                                    <span class="bar-avatar">{{ candidate.name[0] }}</span>
+                                    <div>
+                                        <span class="bar-name">{{ candidate.name }}</span>
+                                        {% if candidate.party %}
+                                            <span class="bar-party">{{ candidate.party }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="bar-stats">
+                                    <span class="bar-votes">{{ candidate.vote_count }} votes</span>
+                                    <span class="bar-pct">
+                                        {{ "%.1f"|format(candidate.vote_count / total_votes * 100) if total_votes > 0 else "0.0" }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width: {{ (candidate.vote_count / total_votes * 100) if total_votes > 0 else 0 }}%" data-candidate-id="{{ candidate.id }}"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const electionId = {{ election.id }};
+    const electionStatus = '{{ election.status }}';
+    
+    // Chart colors
+    const CHART_COLORS = [
+        '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', 
+        '#ef4444', '#ec4899', '#3b82f6', '#f97316'
+    ];
+    
+    let chartData = [];
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchResults();
+        if (electionStatus === 'active') {
+            setInterval(fetchResults, 5000);
+        }
+    });
+    
+    async function fetchResults() {
+        try {
+            const res = await fetch(`/api/results/${electionId}`);
+            const data = await res.json();
+            chartData = data.results;
+            
+            document.getElementById('total-votes-badge').textContent = `🗳️ ${data.election.total_votes} total votes`;
+            
+            updateBars(data.results, data.election.total_votes);
+            drawDonutChart(data.results);
+            updateLegend(data.results);
+        } catch (err) {
+            console.error('Failed to fetch results:', err);
+        }
+    }
+    
+    function updateBars(results, totalVotes) {
+        results.forEach((r, i) => {
+            const barItem = document.querySelector(`[data-candidate-id="${r.id}"]`);
+            if (barItem) {
+                barItem.style.width = r.percentage + '%';
+                barItem.style.backgroundColor = CHART_COLORS[i % CHART_COLORS.length];
+            }
+        });
+    }
+    
+    function drawDonutChart(results) {
+        const canvas = document.getElementById('donut-chart');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) / 2 - 20;
+        const innerRadius = radius * 0.6;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        const total = results.reduce((s, r) => s + r.votes, 0);
+        
+        if (total === 0) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('No votes yet', cx, cy);
+            return;
+        }
+        
+        let startAngle = -Math.PI / 2;
+        
+        results.forEach((r, i) => {
+            const sliceAngle = (r.votes / total) * Math.PI * 2;
+            const endAngle = startAngle + sliceAngle;
+            
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, startAngle, endAngle);
+            ctx.arc(cx, cy, innerRadius, endAngle, startAngle, true);
+            ctx.closePath();
+            ctx.fillStyle = CHART_COLORS[i % CHART_COLORS.length];
+            ctx.fill();
+            
+            // Gap between slices
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            startAngle = endAngle;
+        });
+        
+        // Center text
+        ctx.fillStyle = '#f1f5f9';
+        ctx.font = '700 28px Outfit';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(total, cx, cy - 8);
+        
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '400 13px Inter';
+        ctx.fillText('Total Votes', cx, cy + 16);
+    }
+    
+    function updateLegend(results) {
+        const legend = document.getElementById('chart-legend');
+        legend.innerHTML = results.map((r, i) => `
+            <div class="legend-item">
+                <span class="legend-color" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>
+                <span class="legend-name">${r.name}</span>
+                <span class="legend-pct">${r.percentage}%</span>
+            </div>
+        `).join('');
+    }
+</script>
+{% endblock %}
