@@ -173,8 +173,9 @@ def verify_otp():
         db.session.commit()
         
         session.pop('verify_email', None)
-        flash('Email verified successfully! You can now login.', 'success')
-        return redirect(url_for('login'))
+        login_user(user)
+        flash('Email verified successfully! Welcome to VoteSecure.', 'success')
+        return redirect(url_for('dashboard'))
     
     return render_template('verify_otp.html', email=email)
 
@@ -446,9 +447,12 @@ def create_election():
         )
         
         db.session.add(election)
-        db.session.commit()
-        
-        flash(f'Election "{title}" created successfully!', 'success')
+        try:
+            db.session.commit()
+            flash(f'Election "{title}" created successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Database error: Could not create election.', 'danger')
         return redirect(url_for('admin_candidates', election_id=election.id))
     
     return render_template('admin/create_election.html')
@@ -473,8 +477,12 @@ def edit_election(election_id):
             flash('Invalid date format.', 'danger')
             return redirect(url_for('edit_election', election_id=election_id))
         
-        db.session.commit()
-        flash('Election updated successfully!', 'success')
+        try:
+            db.session.commit()
+            flash('Election updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Database error: Could not update election.', 'danger')
         return redirect(url_for('admin_elections'))
     
     return render_template('admin/create_election.html', election=election, editing=True)
@@ -485,10 +493,13 @@ def edit_election(election_id):
 def toggle_election(election_id):
     election = Election.query.get_or_404(election_id)
     election.is_active = not election.is_active
-    db.session.commit()
-    
-    status = 'activated' if election.is_active else 'deactivated'
-    flash(f'Election "{election.title}" {status}.', 'success')
+    try:
+        db.session.commit()
+        status = 'activated' if election.is_active else 'deactivated'
+        flash(f'Election "{election.title}" {status}.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Could not toggle election.', 'danger')
     return redirect(url_for('admin_elections'))
 
 
@@ -496,10 +507,13 @@ def toggle_election(election_id):
 @admin_required
 def delete_election(election_id):
     election = Election.query.get_or_404(election_id)
-    db.session.delete(election)
-    db.session.commit()
-    
-    flash(f'Election "{election.title}" deleted.', 'success')
+    try:
+        db.session.delete(election)
+        db.session.commit()
+        flash(f'Election "{election.title}" deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Cannot delete election. It might have linked candidates or votes.', 'danger')
     return redirect(url_for('admin_elections'))
 
 
@@ -525,9 +539,12 @@ def admin_candidates(election_id):
         )
         
         db.session.add(candidate)
-        db.session.commit()
-        
-        flash(f'Candidate "{name}" added successfully!', 'success')
+        try:
+            db.session.commit()
+            flash(f'Candidate "{name}" added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Database error: Could not add candidate.', 'danger')
         return redirect(url_for('admin_candidates', election_id=election_id))
     
     candidates = Candidate.query.filter_by(election_id=election_id).all()
@@ -539,10 +556,13 @@ def admin_candidates(election_id):
 def delete_candidate(candidate_id):
     candidate = Candidate.query.get_or_404(candidate_id)
     election_id = candidate.election_id
-    db.session.delete(candidate)
-    db.session.commit()
-    
-    flash(f'Candidate "{candidate.name}" removed.', 'success')
+    try:
+        db.session.delete(candidate)
+        db.session.commit()
+        flash(f'Candidate "{candidate.name}" removed.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Cannot remove candidate. Votes might be linked.', 'danger')
     return redirect(url_for('admin_candidates', election_id=election_id))
 
 
@@ -562,10 +582,13 @@ def toggle_admin(user_id):
         return redirect(url_for('admin_users'))
     
     user.is_admin = not user.is_admin
-    db.session.commit()
-    
-    status = 'granted admin' if user.is_admin else 'revoked admin from'
-    flash(f'Successfully {status} {user.name}.', 'success')
+    try:
+        db.session.commit()
+        status = 'granted admin' if user.is_admin else 'revoked admin from'
+        flash(f'Successfully {status} {user.name}.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Could not modify privileges.', 'danger')
     return redirect(url_for('admin_users'))
 
 
@@ -577,10 +600,13 @@ def delete_user(user_id):
         flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('admin_users'))
     
-    db.session.delete(user)
-    db.session.commit()
-    
-    flash(f'User "{user.name}" deleted.', 'success')
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'User "{user.name}" deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Cannot delete user. They might have active votes.', 'danger')
     return redirect(url_for('admin_users'))
 
 

@@ -70,11 +70,11 @@
             </div>
         </div>
         {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">📋</div>
+        <div class="empty-state-premium">
+            <div class="empty-state-icon">📋</div>
             <h2>No Elections</h2>
-            <p>Create your first election to get started.</p>
-            <a href="{{ url_for('create_election') }}" class="btn btn-primary">➕ Create Election</a>
+            <div class="empty-state-text">Create your first election to get started.</div>
+            <a href="{{ url_for('create_election') }}" class="btn btn-primary btn-sm mt-3">➕ Create Election</a>
         </div>
         {% endif %}
     </div>

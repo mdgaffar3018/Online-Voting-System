@@ -30,7 +30,7 @@
                     <tr>
                         <td>
                             <div class="table-user">
-                                <span class="table-avatar">{{ user.name[0] }}</span>
+                                <span class="table-avatar {{ ['avatar-cyan', 'avatar-rose', 'avatar-amber', 'avatar-emerald', 'avatar-violet'][user.id % 5] }}">{{ user.name[0] }}</span>
                                 <div>
                                     <div class="table-title">{{ user.name }}</div>
                                     <div class="table-sub">{{ user.email }}</div>
@@ -79,10 +79,10 @@
             </div>
         </div>
         {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">👥</div>
+        <div class="empty-state-premium">
+            <div class="empty-state-icon">👥</div>
             <h2>No Users</h2>
-            <p>No users have registered yet.</p>
+            <div class="empty-state-text">No users have registered yet.</div>
         </div>
         {% endif %}
     </div>

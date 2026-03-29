@@ -44,7 +44,7 @@
             <div class="admin-candidates-grid">
                 {% for candidate in candidates %}
                 <div class="admin-candidate-card" id="admin-candidate-{{ candidate.id }}">
-                    <div class="admin-candidate-avatar">{{ candidate.name[0] }}</div>
+                    <div class="admin-candidate-avatar {{ ['avatar-cyan', 'avatar-rose', 'avatar-amber', 'avatar-emerald', 'avatar-violet'][candidate.id % 5] }}">{{ candidate.name[0] }}</div>
                     <div class="admin-candidate-info">
                         <h4>{{ candidate.name }}</h4>
                         {% if candidate.party %}
@@ -64,10 +64,10 @@
             </div>
         </div>
         {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">👥</div>
+        <div class="empty-state-premium">
+            <div class="empty-state-icon">👥</div>
             <h2>No Candidates</h2>
-            <p>Add candidates using the form above.</p>
+            <div class="empty-state-text">Add candidates using the form above.</div>
         </div>
         {% endif %}
     </div>
