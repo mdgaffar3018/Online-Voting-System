@@ -38,7 +38,9 @@
                             </div>
                         </td>
                         <td>
-                            {% if user.is_verified %}
+                            {% if user.is_blocked %}
+                                <span class="status-pill status-inactive">🚫 Suspended</span>
+                            {% elif user.is_verified %}
                                 <span class="status-pill status-active">Verified</span>
                             {% else %}
                                 <span class="status-pill status-inactive">Unverified</span>
@@ -61,6 +63,12 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-ghost btn-xs" title="Toggle Admin">
                                             {% if user.is_admin %}👤 Revoke Admin{% else %}👑 Make Admin{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('toggle_block', user_id=user.id) }}" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-ghost btn-xs" title="Toggle Suspension">
+                                            {% if user.is_blocked %}✅ Unblock{% else %}🚫 Block{% endif %}
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Delete this user? This cannot be undone.')">

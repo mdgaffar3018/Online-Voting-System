@@ -81,6 +81,14 @@ def send_otp_email(user_email, otp_code):
 
 # ==================== PUBLIC ROUTES ====================
 
+@app.before_request
+def check_blocked_user():
+    if current_user.is_authenticated and current_user.is_blocked:
+        if request.endpoint not in ['static', 'logout', 'login']:
+            logout_user()
+            flash('Your account has been suspended by an administrator.', 'danger')
+            return redirect(url_for('login'))
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -215,6 +223,10 @@ def login():
         
         if not user or not check_password_hash(user.password_hash, password):
             flash('Invalid email or password.', 'danger')
+            return redirect(url_for('login'))
+            
+        if user.is_blocked:
+            flash('Your account has been suspended by an administrator.', 'danger')
             return redirect(url_for('login'))
         
         if not user.is_verified:
@@ -589,6 +601,25 @@ def toggle_admin(user_id):
     except Exception as e:
         db.session.rollback()
         flash('Database error: Could not modify privileges.', 'danger')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/toggle-block', methods=['POST'])
+@admin_required
+def toggle_block(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash('You cannot suspend your own account.', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    user.is_blocked = not user.is_blocked
+    try:
+        db.session.commit()
+        status = 'suspended' if user.is_blocked else 'unblocked'
+        flash(f'Successfully {status} {user.name}.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Database error: Could not modify suspension status.', 'danger')
     return redirect(url_for('admin_users'))
 
 
