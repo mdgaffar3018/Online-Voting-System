@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import random
 import string
+import threading
 
 from config import Config
 from models import db, User, Election, Candidate, Vote
@@ -48,6 +49,35 @@ def admin_required(f):
 
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
+
+
+def send_async_email(app_obj, msg):
+    with app_obj.app_context():
+        try:
+            if mail:
+                mail.send(msg)
+        except Exception as e:
+            print(f"Background Email Error: {e}")
+
+def send_notification_email(subject, recipients, html_body, bcc=None):
+    if Config.OTP_CONSOLE_MODE or not mail:
+        print("\n" + "=" * 50)
+        print(f"  [MOCK NOTIFICATION] To: {recipients or bcc}")
+        print(f"  Subject: {subject}")
+        print("=" * 50 + "\n")
+        return True
+        
+    try:
+        from flask import current_app
+        msg = Message(subject, recipients=recipients, bcc=bcc)
+        msg.html = html_body
+        app_obj = current_app._get_current_object()
+        thread = threading.Thread(target=send_async_email, args=(app_obj, msg))
+        thread.start()
+        return True
+    except Exception as e:
+        print(f"Error starting email thread: {e}")
+        return False
 
 
 def send_otp_email(user_email, otp_code):
@@ -321,6 +351,18 @@ def vote(election_id):
             db.session.add(new_vote)
             db.session.commit()
             flash('Your vote has been cast successfully!', 'success')
+            
+            # Send Notification
+            receipt_html = f"""
+            <div style="font-family: Arial; padding: 20px; background: #111827; color: #fff; border-radius: 12px;">
+                <h2 style="color: #10b981;">🗳️ Vote Received</h2>
+                <p>Hello {current_user.name},</p>
+                <p>Your vote for the election <strong>"{election.title}"</strong> has been successfully recorded securely.</p>
+                <p style="color: #9ca3af; font-size: 13px;">To ensure ballot secrecy, this receipt does not state who you voted for.</p>
+                <p>Thank you for participating!</p>
+            </div>
+            """
+            send_notification_email(f"Vote Receipt: {election.title}", [current_user.email], receipt_html)
             return redirect(url_for('vote_success', election_id=election_id))
         except Exception:
             db.session.rollback()
@@ -462,6 +504,22 @@ def create_election():
         try:
             db.session.commit()
             flash(f'Election "{title}" created successfully!', 'success')
+            
+            # Announce Election to verified non-blocked users
+            users = User.query.filter_by(is_verified=True, is_blocked=False).all()
+            bccs = [u.email for u in users]
+            if bccs:
+                announce_html = f"""
+                <div style="font-family: Arial; padding: 20px; background: #111827; color: #fff; border-radius: 12px;">
+                    <h2 style="color: #06b6d4;">📢 New Election Announced</h2>
+                    <p>A new election <strong>"{title}"</strong> has been created on VoteSecure.</p>
+                    <p><strong>Starts:</strong> {start_dt.strftime('%b %d, %Y %I:%M %p')} UTC</p>
+                    <p><strong>Ends:</strong> {end_dt.strftime('%b %d, %Y %I:%M %p')} UTC</p>
+                    <p>Login to your dashboard to view details and participate.</p>
+                </div>
+                """
+                send_notification_email(f"New Election Started: {title}", [], announce_html, bcc=bccs)
+                
         except Exception as e:
             db.session.rollback()
             flash('Database error: Could not create election.', 'danger')

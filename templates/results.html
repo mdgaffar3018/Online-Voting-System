@@ -3,6 +3,43 @@
 
 {% block content %}
 <section class="results-section">
+<style>
+.result-bar-item {
+    padding: 16px 20px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    background: var(--bg-hover);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin-bottom: 16px;
+}
+.result-bar-item.winner {
+    border-color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.08);
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.15);
+    transform: scale(1.02);
+    z-index: 10;
+}
+.winner-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    animation: winnerBounce 2s infinite ease-in-out;
+}
+@keyframes winnerBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+</style>
     <div class="container">
         <div class="results-header">
             <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
@@ -99,7 +136,7 @@
             
             document.getElementById('total-votes-badge').textContent = `🗳️ ${data.election.total_votes} total votes`;
             
-            updateBars(data.results, data.election.total_votes);
+            updateBars(data.results, data.election.total_votes, data.election.status);
             drawDonutChart(data.results);
             updateLegend(data.results);
         } catch (err) {
@@ -107,12 +144,36 @@
         }
     }
     
-    function updateBars(results, totalVotes) {
+    function updateBars(results, totalVotes, status) {
+        const maxVotes = Math.max(...results.map(r => r.votes));
+
         results.forEach((r, i) => {
-            const barItem = document.querySelector(`[data-candidate-id="${r.id}"]`);
+            const barFill = document.querySelector(`[data-candidate-id="${r.id}"]`);
+            if (barFill) {
+                barFill.style.width = r.percentage + '%';
+                barFill.style.backgroundColor = CHART_COLORS[i % CHART_COLORS.length];
+            }
+            
+            const barItem = document.getElementById(`result-bar-${r.id}`);
             if (barItem) {
-                barItem.style.width = r.percentage + '%';
-                barItem.style.backgroundColor = CHART_COLORS[i % CHART_COLORS.length];
+                const voteSpan = barItem.querySelector('.bar-votes');
+                const pctSpan = barItem.querySelector('.bar-pct');
+                if (voteSpan) voteSpan.textContent = `${r.votes} votes`;
+                if (pctSpan) pctSpan.textContent = `${r.percentage}%`;
+
+                if (status === 'ended' && r.votes > 0 && r.votes === maxVotes) {
+                    barItem.classList.add('winner');
+                    if (!barItem.querySelector('.winner-badge')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'winner-badge';
+                        badge.innerHTML = '🏆 WINNER';
+                        barItem.appendChild(badge);
+                    }
+                } else {
+                    barItem.classList.remove('winner');
+                    const badge = barItem.querySelector('.winner-badge');
+                    if (badge) badge.remove();
+                }
             }
         });
     }

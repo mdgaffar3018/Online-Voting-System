@@ -9,7 +9,10 @@
             <h1 class="page-title">{{ election.title }}</h1>
             <p class="page-subtitle">{{ election.description or '' }}</p>
             <div class="vote-info">
-                <span class="info-badge">🕐 Ends: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                <span class="info-badge">
+                    🕐 Time Remaining: <strong class="countdown" data-endtime="{{ election.end_time.isoformat() }}Z" style="margin-left:6px; color:var(--accent-cyan);">--:--:--</strong>
+                </span>
+                <span class="info-badge" style="display:none;">Ends: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }} UTC</span>
                 <span class="info-badge">🗳️ {{ election.total_votes }} votes cast</span>
             </div>
         </div>
@@ -51,4 +54,46 @@
         </form>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const countdownElement = document.querySelector('.countdown');
+        if (countdownElement) {
+            const endTimeStr = countdownElement.getAttribute('data-endtime');
+            const endTime = new Date(endTimeStr).getTime();
+            const btn = document.getElementById('submit-vote-btn');
+            
+            const timer = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                
+                if (distance < 0) {
+                    clearInterval(timer);
+                    countdownElement.innerHTML = "ELECTION ENDED";
+                    countdownElement.style.color = "var(--accent-rose)";
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = "Voting Closed";
+                        btn.className = "btn btn-disabled btn-lg";
+                        btn.onclick = function(e){ e.preventDefault(); return false; };
+                    }
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    let display = "";
+                    if (days > 0) display += days + "d ";
+                    display += hours.toString().padStart(2, '0') + "h " + 
+                               minutes.toString().padStart(2, '0') + "m " + 
+                               seconds.toString().padStart(2, '0') + "s";
+                    countdownElement.innerHTML = display;
+                }
+            }, 1000);
+        }
+    });
+</script>
 {% endblock %}

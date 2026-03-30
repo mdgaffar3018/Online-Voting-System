@@ -27,7 +27,7 @@
                     <h3 class="election-title">{{ election.title }}</h3>
                     <p class="election-desc">{{ election.description or 'No description provided.' }}</p>
                     <div class="election-meta">
-                        <span>📅 Ends: {{ election.end_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                        <span>📅 Ends in: <strong class="active-countdown" data-endtime="{{ election.end_time.isoformat() }}Z" data-btnid="vote-btn-{{ election.id }}" style="color:var(--accent-cyan);">--:--:--</strong></span>
                         <span>🗳️ {{ election.total_votes }} votes</span>
                     </div>
                     <div class="election-actions">
@@ -65,7 +65,7 @@
                     <h3 class="election-title">{{ election.title }}</h3>
                     <p class="election-desc">{{ election.description or 'No description provided.' }}</p>
                     <div class="election-meta">
-                        <span>📅 Starts: {{ election.start_time.strftime('%b %d, %Y %I:%M %p') }}</span>
+                        <span>📅 <strong class="upcoming-countdown" data-starttime="{{ election.start_time.isoformat() }}Z" style="color:var(--accent-cyan);">--:--:--</strong></span>
                     </div>
                     <div class="election-actions">
                         <span class="btn btn-disabled btn-sm">⏳ Not Started Yet</span>
@@ -113,4 +113,62 @@
         {% endif %}
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function formatTime(distance) {
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            let display = "";
+            if (days > 0) display += days + "d ";
+            return display + hours.toString().padStart(2, '0') + "h " + 
+                   minutes.toString().padStart(2, '0') + "m " + 
+                   seconds.toString().padStart(2, '0') + "s";
+        }
+
+        const activeCountdowns = document.querySelectorAll('.active-countdown');
+        activeCountdowns.forEach(el => {
+            const endTimeStr = el.getAttribute('data-endtime');
+            if(!endTimeStr) return;
+            const endTime = new Date(endTimeStr).getTime();
+            const btn = document.getElementById(el.getAttribute('data-btnid'));
+            const timer = setInterval(() => {
+                const distance = endTime - new Date().getTime();
+                if (distance < 0) {
+                    clearInterval(timer);
+                    el.innerHTML = "Ended";
+                    el.style.color = "var(--accent-rose)";
+                    if (btn) {
+                        btn.className = "btn btn-disabled btn-sm";
+                        btn.innerHTML = "Voting Closed";
+                        btn.onclick = e => e.preventDefault();
+                    }
+                } else {
+                    el.innerHTML = formatTime(distance);
+                }
+            }, 1000);
+        });
+        
+        const upcomingCountdowns = document.querySelectorAll('.upcoming-countdown');
+        upcomingCountdowns.forEach(el => {
+            const startTimeStr = el.getAttribute('data-starttime');
+            if(!startTimeStr) return;
+            const startTime = new Date(startTimeStr).getTime();
+            const timer = setInterval(() => {
+                const distance = startTime - new Date().getTime();
+                if (distance < 0) {
+                    clearInterval(timer);
+                    el.innerHTML = "Started! (Refresh page)";
+                    el.style.color = "var(--accent-emerald)";
+                } else {
+                    el.innerHTML = "Starts in: " + formatTime(distance);
+                }
+            }, 1000);
+        });
+    });
+</script>
 {% endblock %}
